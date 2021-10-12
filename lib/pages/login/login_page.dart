@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_food/pages/home/home_page.dart';
+import 'package:http/http.dart' as http;
+
 
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
@@ -11,7 +14,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  static const pin = '123456';
+  //static const pin = '123456';
   var input = '';
 
   @override
@@ -130,28 +133,42 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _handleClickButton(int num) {
+  Future<void> _handleClickButton(int num) async{
     print('You pressed $num');
-
-    setState(() {
+    var url = Uri.parse('https://cpsu-test-api.herokuapp.com/login');
+    //var response = await http.get(url);
+    var response = await http.post(url, body: {'pin': '$input$num'});
+    print('$input$num');
+    setState(()  {
       if (num == -1) {
         if (input.length > 0) input = input.substring(0, input.length - 1);
       } else {
         input = '$input$num';
       }
+      if (input.length == 6) {
+        if (response.statusCode == 200) {
+          //ดึงค่า response body ออกมา
+          Map<String, dynamic> jsonBody = json.decode(response.body);
+          print(jsonBody);
+          String status = jsonBody['status'];
+          String? message = jsonBody['message'];
+          bool data = jsonBody['data'];
+          print(response.statusCode);
+          print('STATUS: $status');
+          print('MESSAGE: $message');
+          print('DATA: $data');
 
-      if (input.length == pin.length) {
-        if (input == pin) {
-          /*Navigator.pushReplacement(
+          if (data == true) {
+            /*Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomePage()),
           );*/
-          Navigator.pushReplacementNamed(context, HomePage.routeName);
-        } else {
-          _showMaterialDialog('ERROR', 'Invalid PIN. Please try again.');
+            Navigator.pushReplacementNamed(context, HomePage.routeName);
+          } else {
+            _showMaterialDialog('ERROR', 'Invalid PIN. Please try again.');
+          }
+          input = '';
         }
-
-        input = '';
       }
     });
   }

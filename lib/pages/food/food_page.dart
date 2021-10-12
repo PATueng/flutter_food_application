@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_food/models/api_result.dart';
 import 'package:flutter_food/models/food_item.dart';
 import 'package:flutter_food/pages/food/food_list_page.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http; //แพ็กเกจ http ไว้เรียกใช้ API
 
 class FoodPage extends StatefulWidget {
   const FoodPage({Key? key}) : super(key: key);
@@ -38,7 +37,7 @@ class _FoodPageState extends State<FoodPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _fetchFoods,
+        onPressed: _test/*_fetchFoods*/,
         child: Icon(Icons.add),
       ),
       body: _selectedBottomNavIndex == 0
@@ -52,7 +51,45 @@ class _FoodPageState extends State<FoodPage> {
     );
   }
 
-  _fetchFoods() async {
+  Future<void> _test() async{
+     var url = Uri.parse('https://cpsu-test-api.herokuapp.com/foods');
+     var response = await http.get(url);
+     // var response = await http.post(url, body:{'pin' : '123456'});
+     if(response.statusCode == 200){
+       //ดึงค่า response body ออกมา
+       Map<String , dynamic> jsonBody = json.decode(response.body);
+       String status = jsonBody['status'];
+       String? message = jsonBody['message'];
+       List<dynamic> data = jsonBody['data'];
+       print(response.statusCode);
+       print('STATUS: $status');
+       print('MESSAGE: $message');
+       //print('DATA: $data');
+
+       var foodList = data.map((element) => FoodItem(
+         id: element['id'],
+         name: element['name'],
+         price: element['price'],
+         image: element['image'],
+       )).toList();
+
+       /*data.forEach((element) {
+         print('++++++++ ITEM +++++++++');
+         print(element['name']);
+         FoodItem(
+           id: element['id'],
+           name: element['name'],
+           price: element['price'],
+           image: element['image'],
+         );
+       });*/
+     }
+
+    /*ทำไมต้องมี await
+     var json = http.get(url); //เป็น Asynchronous
+     json.then((value) => null);*/
+  }
+  /*_fetchFoods() async {
     try {
       var list = (await _fetch('foods')) as List<dynamic>;
       var foodList = list.map((item) => FoodItem.fromJson(item)).toList();
@@ -61,9 +98,9 @@ class _FoodPageState extends State<FoodPage> {
       var msg = 'ERROR: $e';
       print(msg);
     }
-  }
+  }*/
 
-  Future<dynamic> _fetch(String endPoint) async {
+  /*Future<dynamic> _fetch(String endPoint) async {
     var url = Uri.parse('https://cpsu-test-api.herokuapp.com/$endPoint');
     final response = await http.get(url);
 
@@ -80,15 +117,15 @@ class _FoodPageState extends State<FoodPage> {
         throw Exception(result.message);
       }
 
-      /*print(jsonBody['status']);
+      *//*print(jsonBody['status']);
       print(jsonBody['data']);
       if (jsonBody['status'] == 'ok') {
         return jsonBody['data'];
       } else {
         throw Exception(jsonBody['message']);
-      }*/
+      }*//*
     } else {
       throw Exception('Server connection failed!');
     }
-  }
+  }*/
 }
